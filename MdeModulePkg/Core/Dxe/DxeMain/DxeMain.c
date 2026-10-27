@@ -520,9 +520,12 @@ DxeMain (
   //
   // Produce Firmware Volume Protocols, one for each FV in the HOB list.
   //
+  DEBUG ((DEBUG_ERROR, "DXE: Calling FwVolBlockDriverInit...\n"));
   Status = FwVolBlockDriverInit (gDxeCoreImageHandle, gDxeCoreST);
   ASSERT_EFI_ERROR (Status);
+  DEBUG ((DEBUG_ERROR, "DXE: FwVolBlockDriverInit returned %r\n", Status));
 
+  DEBUG ((DEBUG_ERROR, "DXE: Calling FwVolDriverInit...\n"));
   Status = FwVolDriverInit (gDxeCoreImageHandle, gDxeCoreST);
   ASSERT_EFI_ERROR (Status);
   DEBUG ((DEBUG_ERROR, "DXE: FwVol Drivers Initialized\n"));
