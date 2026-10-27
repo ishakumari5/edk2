@@ -7,6 +7,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 **/
 
 #include "DxeMain.h"
+#include <Library/CacheMaintenanceLib.h>
 
 //
 // DXE Core Global Variables for Protocols from PEI
@@ -220,6 +221,12 @@ GLOBAL_REMOVE_IF_UNREFERENCED EFI_LOAD_FIXED_ADDRESS_CONFIGURATION_TABLE  gLoadM
 // Main entry point to the DXE Core
 //
 
+STATIC VOID FbFillScreen(UINT32 Color) {
+    volatile UINT32 *Fb = (volatile UINT32 *)(UINTN)0x90000000; // Adjust address if onc FB is different
+    for (UINTN i = 0; i < (720 * 1520); i++) { Fb[i] = Color; }
+    WriteBackDataCacheRange((VOID *)(UINTN)0x90000000, 720 * 1520 * 4);
+}
+
 /**
   Main entry point to DXE Core.
 
@@ -275,6 +282,7 @@ DxeMain (
   // Initialize Memory Services
   //
   CoreInitializeMemoryServices (&HobStart, &MemoryBaseAddress, &MemoryLength);
+  FbFillScreen(0x00FF0000); // RED right after CoreInitializeMemoryServices
 
   MemoryProfileInit (HobStart);
 
@@ -308,6 +316,7 @@ DxeMain (
   DEBUG ((DEBUG_ERROR, "DXE: Running Library Constructors...\n"));
   ProcessLibraryConstructorList (gDxeCoreImageHandle, gDxeCoreST);
   DEBUG ((DEBUG_ERROR, "DXE: Library Constructors Done\n"));
+  FbFillScreen(0x0000FF00); // GREEN right after DXE: Library Constructors Done
   PERF_CROSSMODULE_END ("PEI");
   PERF_CROSSMODULE_BEGIN ("DXE");
   DEBUG ((DEBUG_ERROR, "DXE: CrossModule Perf Done\n"));
