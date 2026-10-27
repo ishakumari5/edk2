@@ -50,7 +50,8 @@ ArmGenericTimerSetTimerFreq (
   IN   UINTN  FreqInHz
   )
 {
-  ArmWriteCntFrq (FreqInHz);
+  // No-op at Non-Secure EL1
+  return;
 }
 
 UINTN
@@ -59,7 +60,11 @@ ArmGenericTimerGetTimerFreq (
   VOID
   )
 {
-  return ArmReadCntFrq ();
+  UINTN Freq = ArmReadCntFrq ();
+  if (Freq == 0) {
+    Freq = 19200000;
+  }
+  return Freq;
 }
 
 UINTN

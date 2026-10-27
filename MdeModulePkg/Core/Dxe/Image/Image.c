@@ -1688,7 +1688,9 @@ CoreStartImage (
     // Call the image's entry point
     //
     Image->Started = TRUE;
+    DEBUG ((DEBUG_ERROR, "DXE: StartImage %a EntryPoint %p...\r\n", Image->ImageContext.PdbPointer != NULL ? Image->ImageContext.PdbPointer : "Unknown", Image->EntryPoint));
     Image->Status  = Image->EntryPoint (ImageHandle, Image->Info.SystemTable);
+    DEBUG ((DEBUG_ERROR, "DXE: EntryPoint returned: %r\r\n", Image->Status));
 
     //
     // Add some debug information if the image returned with error.

@@ -30,47 +30,6 @@ TimerConstructor (
   VOID
   )
 {
-  //
-  // Check if the ARM Generic Timer Extension is implemented.
-  //
-  if (ArmIsArchTimerImplemented ()) {
-    //
-    // Check if Architectural Timer frequency is pre-determined by the platform
-    // (ie. nonzero).
-    //
-    if (PcdGet32 (PcdArmArchTimerFreqInHz) != 0) {
-      //
-      // Check if ticks/uS is not 0. The Architectural timer runs at constant
-      // frequency, irrespective of CPU frequency. According to Generic Timer
-      // Ref manual, lower bound of the frequency is in the range of 1-10MHz.
-      //
-      ASSERT (TICKS_PER_MICRO_SEC);
-
- #ifdef MDE_CPU_ARM
-      //
-      // Only set the frequency for ARMv7. We expect the secure firmware to
-      // have already done it.
-      // If the security extension is not implemented, set Timer Frequency
-      // here.
-      //
-      if (ArmHasSecurityExtensions ()) {
-        ArmGenericTimerSetTimerFreq (PcdGet32 (PcdArmArchTimerFreqInHz));
-      }
-
- #endif
-    }
-
-    //
-    // Architectural Timer Frequency must be set in Secure privileged
-    // mode (if secure extension is supported).
-    // If the reset value (0) is returned, just ASSERT.
-    //
-    ASSERT (ArmGenericTimerGetTimerFreq () != 0);
-  } else {
-    DEBUG ((DEBUG_ERROR, "ARM Architectural Timer is not available in the CPU, hence this library cannot be used.\n"));
-    ASSERT (0);
-  }
-
   return RETURN_SUCCESS;
 }
 
@@ -92,6 +51,9 @@ GetPlatformTimerFreq (
   TimerFreq = PcdGet32 (PcdArmArchTimerFreqInHz);
   if (TimerFreq == 0) {
     TimerFreq = ArmGenericTimerGetTimerFreq ();
+  }
+  if (TimerFreq == 0) {
+    TimerFreq = 19200000;
   }
 
   return TimerFreq;

@@ -744,12 +744,14 @@ LocateExPcdBinary (
   // Search the External Pcd database from one section of current FFS,
   // and read it to memory
   //
+  DEBUG ((DEBUG_ERROR, "PCD: LocateExPcdBinary In\r\n"));
   Status = GetSectionFromFfs (
              EFI_SECTION_RAW,
              0,
              (VOID **)&mDxePcdDbBinary,
              &mDxePcdDbSize
              );
+  DEBUG ((DEBUG_ERROR, "PCD: GetSectionFromFfs: %r size=%d\r\n", Status, (UINT32)mDxePcdDbSize));
   ASSERT_EFI_ERROR (Status);
 
   //
@@ -869,15 +871,22 @@ BuildPcdDxeDataBase (
   //
   // Assign PCD Entries with default value to PCD DATABASE
   //
+  DEBUG ((DEBUG_ERROR, "PCD: Locating ExPcdBinary...\r\n"));
   mPcdDatabase.DxeDb = LocateExPcdBinary ();
+  DEBUG ((DEBUG_ERROR, "PCD: DxeDb=%p len=%d uninit=%d\r\n", mPcdDatabase.DxeDb, mPcdDatabase.DxeDb != NULL ? mPcdDatabase.DxeDb->Length : 0, mPcdDatabase.DxeDb != NULL ? mPcdDatabase.DxeDb->UninitDataBaseSize : 0));
   ASSERT (mPcdDatabase.DxeDb != NULL);
   PcdDxeDbLen = mPcdDatabase.DxeDb->Length + mPcdDatabase.DxeDb->UninitDataBaseSize;
+  DEBUG ((DEBUG_ERROR, "PCD-1: Allocating PcdDxeDbLen=%d\r\n", PcdDxeDbLen));
   PcdDxeDb    = AllocateZeroPool (PcdDxeDbLen);
+  DEBUG ((DEBUG_ERROR, "PCD-2: PcdDxeDb=%p\r\n", PcdDxeDb));
   ASSERT (PcdDxeDb != NULL);
   CopyMem (PcdDxeDb, mPcdDatabase.DxeDb, mPcdDatabase.DxeDb->Length);
+  DEBUG ((DEBUG_ERROR, "PCD-3: CopyMem done\r\n"));
   mPcdDatabase.DxeDb = PcdDxeDb;
 
+  DEBUG ((DEBUG_ERROR, "PCD-4: Checking GuidHob...\r\n"));
   GuidHob = GetFirstGuidHob (&gPcdDataBaseHobGuid);
+  DEBUG ((DEBUG_ERROR, "PCD-4.1: GuidHob=%p\r\n", GuidHob));
   if (GuidHob != NULL) {
     //
     // If no PEIMs use dynamic Pcd Entry, the Pcd Service PEIM
@@ -910,7 +919,9 @@ BuildPcdDxeDataBase (
 
     mPcdDatabase.DxeDb->SystemSkuId = mPcdDatabase.PeiDb->SystemSkuId;
   } else {
+    DEBUG ((DEBUG_ERROR, "PCD-5: Allocating PeiDb...\r\n"));
     mPcdDatabase.PeiDb = AllocateZeroPool (sizeof (PEI_PCD_DATABASE));
+    DEBUG ((DEBUG_ERROR, "PCD-5.1: PeiDb=%p\r\n", mPcdDatabase.PeiDb));
     ASSERT (mPcdDatabase.PeiDb != NULL);
   }
 
@@ -919,6 +930,8 @@ BuildPcdDxeDataBase (
   //
   mPeiLocalTokenCount = mPcdDatabase.PeiDb->LocalTokenCount;
   mDxeLocalTokenCount = mPcdDatabase.DxeDb->LocalTokenCount;
+
+  DEBUG ((DEBUG_ERROR, "PCD-6: Tokens Pei=%d Dxe=%d\r\n", mPeiLocalTokenCount, mDxeLocalTokenCount));
 
   mPeiExMapppingTableSize = mPcdDatabase.PeiDb->ExTokenCount * sizeof (DYNAMICEX_MAPPING);
   mDxeExMapppingTableSize = mPcdDatabase.DxeDb->ExTokenCount * sizeof (DYNAMICEX_MAPPING);
@@ -934,11 +947,13 @@ BuildPcdDxeDataBase (
   mPeiDatabaseEmpty   = (mPeiLocalTokenCount == 0) ? TRUE : FALSE;
 
   TmpTokenSpaceBufferCount = mPcdDatabase.PeiDb->ExTokenCount + mPcdDatabase.DxeDb->ExTokenCount;
+  DEBUG ((DEBUG_ERROR, "PCD-7: TmpTokenSpaceBufferCount=%d\r\n", (UINT32)TmpTokenSpaceBufferCount));
   TmpTokenSpaceBuffer      = (EFI_GUID **)AllocateZeroPool (TmpTokenSpaceBufferCount * sizeof (EFI_GUID *));
 
   //
   // Initialized the Callback Function Table
   //
+  DEBUG ((DEBUG_ERROR, "PCD-8: Allocating mCallbackFnTable total=%d\r\n", mPcdTotalTokenCount));
   mCallbackFnTable = AllocateZeroPool (mPcdTotalTokenCount * sizeof (LIST_ENTRY));
   ASSERT (mCallbackFnTable != NULL);
 
@@ -950,6 +965,7 @@ BuildPcdDxeDataBase (
   for (Index = 0; Index + 1 < mPcdTotalTokenCount + 1; Index++) {
     InitializeListHead (&mCallbackFnTable[Index]);
   }
+  DEBUG ((DEBUG_ERROR, "PCD-9: BuildPcdDxeDataBase finished!\r\n"));
 }
 
 /**
@@ -1616,6 +1632,7 @@ GetExPcdTokenNumber (
   GuidTable = (EFI_GUID *)((UINT8 *)mPcdDatabase.DxeDb + mPcdDatabase.DxeDb->GuidTableOffset);
 
   MatchGuid = ScanGuid (GuidTable, mDxeGuidTableSize, Guid);
+  DEBUG ((DEBUG_ERROR, "PCD: ScanGuid Guid=%g Match=%p\r\n", Guid, MatchGuid));
   //
   // We need to ASSERT here. If GUID can't be found in GuidTable, this is a
   // error in the BUILD system.

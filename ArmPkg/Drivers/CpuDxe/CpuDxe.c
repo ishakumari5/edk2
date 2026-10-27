@@ -236,7 +236,10 @@ CpuDxeInitialize (
   EFI_STATUS  Status;
   EFI_EVENT   IdleLoopEvent;
 
+  DEBUG ((DEBUG_ERROR, "CPUDXE: Initializing...\r\n"));
+
   InitializeExceptions (&mCpu);
+  DEBUG ((DEBUG_ERROR, "CPUDXE: Exceptions Initialized\r\n"));
 
   InitializeDma (&mCpu);
 
@@ -246,6 +249,7 @@ CpuDxeInitialize (
                   &mCpu,
                   NULL
                   );
+  DEBUG ((DEBUG_ERROR, "CPUDXE: Protocol Installed: %r\r\n", Status));
 
   //
   // Make sure GCD and MMU settings match. This API calls gDS->SetMemorySpaceAttributes ()
@@ -255,6 +259,7 @@ CpuDxeInitialize (
   mIsFlushingGCD = TRUE;
   SyncCacheConfig (&mCpu);
   mIsFlushingGCD = FALSE;
+  DEBUG ((DEBUG_ERROR, "CPUDXE: SyncCacheConfig Done\r\n"));
 
   //
   // Setup a callback for idle events
@@ -268,6 +273,7 @@ CpuDxeInitialize (
                   &IdleLoopEvent
                   );
   ASSERT_EFI_ERROR (Status);
+  DEBUG ((DEBUG_ERROR, "CPUDXE: Ready!\r\n"));
 
   return Status;
 }

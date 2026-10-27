@@ -267,6 +267,8 @@ DxeMain (
   //
   // Initialize Debug Agent to support source level debug in DXE phase
   //
+  DEBUG ((DEBUG_ERROR, "\n=== DXE CORE MAIN ENTRY (Hob=%p) ===\n", HobStart));
+
   InitializeDebugAgent (DEBUG_AGENT_INIT_DXE_CORE, HobStart, NULL);
 
   //
@@ -303,9 +305,12 @@ DxeMain (
   //
   // Call constructor for all libraries
   //
+  DEBUG ((DEBUG_ERROR, "DXE: Running Library Constructors...\n"));
   ProcessLibraryConstructorList (gDxeCoreImageHandle, gDxeCoreST);
+  DEBUG ((DEBUG_ERROR, "DXE: Library Constructors Done\n"));
   PERF_CROSSMODULE_END ("PEI");
   PERF_CROSSMODULE_BEGIN ("DXE");
+  DEBUG ((DEBUG_ERROR, "DXE: CrossModule Perf Done\n"));
 
   //
   // Log MemoryBaseAddress and MemoryLength again (from
@@ -313,7 +318,7 @@ DxeMain (
   // executed.
   //
   DEBUG ((
-    DEBUG_INFO,
+    DEBUG_ERROR,
     "%a: MemoryBaseAddress=0x%Lx MemoryLength=0x%Lx\n",
     __FUNCTION__,
     MemoryBaseAddress,
@@ -339,18 +344,21 @@ DxeMain (
   //
   // Install the DXE Services Table into the EFI System Tables's Configuration Table
   //
+  DEBUG ((DEBUG_ERROR, "DXE: Installing DxeServices Table...\n"));
   Status = CoreInstallConfigurationTable (&gEfiDxeServicesTableGuid, gDxeCoreDS);
   ASSERT_EFI_ERROR (Status);
 
   //
   // Install the HOB List into the EFI System Tables's Configuration Table
   //
+  DEBUG ((DEBUG_ERROR, "DXE: Installing HobList Table (%p)...\n", HobStart));
   Status = CoreInstallConfigurationTable (&gEfiHobListGuid, HobStart);
   ASSERT_EFI_ERROR (Status);
 
   //
   // Install Memory Type Information Table into the EFI System Tables's Configuration Table
   //
+  DEBUG ((DEBUG_ERROR, "DXE: Installing MemoryTypeInfo Table...\n"));
   Status = CoreInstallConfigurationTable (&gEfiMemoryTypeInformationGuid, &gMemoryTypeInformation);
   ASSERT_EFI_ERROR (Status);
 
@@ -377,14 +385,16 @@ DxeMain (
   // debuggers to locate the system table...  Also, install debug image info
   // configuration table.
   //
+  DEBUG ((DEBUG_ERROR, "DXE: Initializing DebugImageInfo Table...\n"));
   CoreInitializeDebugImageInfoTable ();
   CoreNewDebugImageInfoEntry (
     EFI_DEBUG_IMAGE_INFO_TYPE_NORMAL,
     gDxeCoreLoadedImage,
     gDxeCoreImageHandle
     );
+  DEBUG ((DEBUG_ERROR, "DXE: DebugImageInfo Initialized\n"));
 
-  DEBUG ((DEBUG_INFO | DEBUG_LOAD, "HOBLIST address in DXE = 0x%p\n", HobStart));
+  DEBUG ((DEBUG_ERROR, "HOBLIST address in DXE = 0x%p\n", HobStart));
 
   DEBUG_CODE_BEGIN ();
   EFI_PEI_HOB_POINTERS  Hob;
@@ -392,7 +402,7 @@ DxeMain (
   for (Hob.Raw = HobStart; !END_OF_HOB_LIST (Hob); Hob.Raw = GET_NEXT_HOB (Hob)) {
     if (GET_HOB_TYPE (Hob) == EFI_HOB_TYPE_MEMORY_ALLOCATION) {
       DEBUG ((
-        DEBUG_INFO | DEBUG_LOAD,
+        DEBUG_VERBOSE,
         "Memory Allocation 0x%08x 0x%0lx - 0x%0lx\n", \
         Hob.MemoryAllocation->AllocDescriptor.MemoryType,                      \
         Hob.MemoryAllocation->AllocDescriptor.MemoryBaseAddress,               \
@@ -404,27 +414,27 @@ DxeMain (
   for (Hob.Raw = HobStart; !END_OF_HOB_LIST (Hob); Hob.Raw = GET_NEXT_HOB (Hob)) {
     if (GET_HOB_TYPE (Hob) == EFI_HOB_TYPE_FV) {
       DEBUG ((
-        DEBUG_INFO | DEBUG_LOAD,
+        DEBUG_ERROR,
         "FV Hob            0x%0lx - 0x%0lx\n",
         Hob.FirmwareVolume->BaseAddress,
         Hob.FirmwareVolume->BaseAddress + Hob.FirmwareVolume->Length - 1
         ));
     } else if (GET_HOB_TYPE (Hob) == EFI_HOB_TYPE_FV2) {
       DEBUG ((
-        DEBUG_INFO | DEBUG_LOAD,
+        DEBUG_ERROR,
         "FV2 Hob           0x%0lx - 0x%0lx\n",
         Hob.FirmwareVolume2->BaseAddress,
         Hob.FirmwareVolume2->BaseAddress + Hob.FirmwareVolume2->Length - 1
         ));
       DEBUG ((
-        DEBUG_INFO | DEBUG_LOAD,
+        DEBUG_ERROR,
         "                  %g - %g\n",
         &Hob.FirmwareVolume2->FvName,
         &Hob.FirmwareVolume2->FileName
         ));
     } else if (GET_HOB_TYPE (Hob) == EFI_HOB_TYPE_FV3) {
       DEBUG ((
-        DEBUG_INFO | DEBUG_LOAD,
+        DEBUG_ERROR,
         "FV3 Hob           0x%0lx - 0x%0lx - 0x%x - 0x%x\n",
         Hob.FirmwareVolume3->BaseAddress,
         Hob.FirmwareVolume3->BaseAddress + Hob.FirmwareVolume3->Length - 1,
@@ -433,7 +443,7 @@ DxeMain (
         ));
       if (Hob.FirmwareVolume3->ExtractedFv) {
         DEBUG ((
-          DEBUG_INFO | DEBUG_LOAD,
+          DEBUG_ERROR,
           "                  %g - %g\n",
           &Hob.FirmwareVolume3->FvName,
           &Hob.FirmwareVolume3->FileName
@@ -449,11 +459,13 @@ DxeMain (
   //
   Status = CoreInitializeEventServices ();
   ASSERT_EFI_ERROR (Status);
+  DEBUG ((DEBUG_ERROR, "DXE: Event Services Initialized\n"));
 
   MemoryProfileInstallProtocol ();
 
   CoreInitializeMemoryAttributesTable ();
   CoreInitializeMemoryProtection ();
+  DEBUG ((DEBUG_ERROR, "DXE: Memory Protection Initialized\n"));
 
   //
   // Get persisted vector hand-off info from GUIDeed HOB again due to HobStart may be updated,
@@ -513,21 +525,26 @@ DxeMain (
 
   Status = FwVolDriverInit (gDxeCoreImageHandle, gDxeCoreST);
   ASSERT_EFI_ERROR (Status);
+  DEBUG ((DEBUG_ERROR, "DXE: FwVol Drivers Initialized\n"));
 
   //
   // Produce the Section Extraction Protocol
   //
   Status = InitializeSectionExtraction (gDxeCoreImageHandle, gDxeCoreST);
   ASSERT_EFI_ERROR (Status);
+  DEBUG ((DEBUG_ERROR, "DXE: Section Extraction Initialized\n"));
 
   //
   // Initialize the DXE Dispatcher
   //
+  DEBUG ((DEBUG_ERROR, "DXE: CoreInitializeDispatcher In\n"));
   CoreInitializeDispatcher ();
+  DEBUG ((DEBUG_ERROR, "DXE: CoreInitializeDispatcher Out\n"));
 
   //
   // Invoke the DXE Dispatcher
   //
+  DEBUG ((DEBUG_ERROR, "\n=== DXE: INVOKING DRIVER DISPATCHER ===\n"));
   CoreDispatcher ();
 
   //

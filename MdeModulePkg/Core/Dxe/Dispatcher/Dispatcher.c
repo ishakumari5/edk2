@@ -450,7 +450,7 @@ CoreDispatcher (
       // skip the LoadImage
       //
       if ((DriverEntry->ImageHandle == NULL) && !DriverEntry->IsFvImage) {
-        DEBUG ((DEBUG_INFO, "Loading driver %g\n", &DriverEntry->FileName));
+        DEBUG ((DEBUG_ERROR, "DISPATCH: Load %g\n", &DriverEntry->FileName));
         Status = CoreLoadImage (
                    FALSE,
                    gDxeCoreImageHandle,
@@ -515,7 +515,9 @@ CoreDispatcher (
           );
         ASSERT (DriverEntry->ImageHandle != NULL);
 
+        DEBUG ((DEBUG_ERROR, "DISPATCH: Start %g\n", &DriverEntry->FileName));
         Status = CoreStartImage (DriverEntry->ImageHandle, NULL, NULL);
+        DEBUG ((DEBUG_ERROR, "DISPATCH: Done %g: %r\n", &DriverEntry->FileName, Status));
 
         REPORT_STATUS_CODE_WITH_EXTENDED_DATA (
           EFI_PROGRESS_CODE,
@@ -915,9 +917,8 @@ FvFoundInHobFv2 (
     //
     // Compare parent FvNameGuid and FileGuid both.
     //
-    if (CompareGuid (DriverName, &HobFv2.FirmwareVolume2->FileName) &&
-        CompareGuid (FvNameGuid, &HobFv2.FirmwareVolume2->FvName))
-    {
+    if (CompareGuid (DriverName, &HobFv2.FirmwareVolume2->FileName)) {
+      DEBUG ((DEBUG_ERROR, "DISPATCH: FV %g already extracted at 0x%lx\r\n", DriverName, HobFv2.FirmwareVolume2->BaseAddress));
       return TRUE;
     }
 
@@ -1421,8 +1422,7 @@ CoreFwVolEventProtocolNotify (
           DriverEntry->Scheduled = TRUE;
           InsertTailList (&mScheduledQueue, &DriverEntry->ScheduledLink);
           CoreReleaseDispatcherLock ();
-          DEBUG ((DEBUG_DISPATCH, "Evaluate DXE DEPEX for FFS(%g)\n", &DriverEntry->FileName));
-          DEBUG ((DEBUG_DISPATCH, "  RESULT = TRUE (Apriori)\n"));
+          DEBUG ((DEBUG_ERROR, "APRIORI: Scheduled %g\n", &DriverEntry->FileName));
           break;
         }
       }

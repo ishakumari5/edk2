@@ -148,9 +148,10 @@ LoadDxeCoreFromFfsFile (
 
   BuildModuleHob (&FvFileInfo.FileName, (EFI_PHYSICAL_ADDRESS)(UINTN)ImageAddress, EFI_SIZE_TO_PAGES ((UINT32)ImageSize) * EFI_PAGE_SIZE, EntryPoint);
 
-  DEBUG ((DEBUG_INFO | DEBUG_LOAD, "Loading DxeCore at 0x%10p EntryPoint=0x%10p\n", (VOID *)(UINTN)ImageAddress, (VOID *)(UINTN)EntryPoint));
+  DEBUG ((DEBUG_ERROR, "Loading DxeCore at 0x%10p EntryPoint=0x%10p\n", (VOID *)(UINTN)ImageAddress, (VOID *)(UINTN)EntryPoint));
 
   Hob = GetHobList ();
+  DEBUG ((DEBUG_ERROR, "Jumping to DxeCore EntryPoint 0x%10p (Hob=%p)...\n", (VOID *)(UINTN)EntryPoint, Hob));
   if (StackSize == 0) {
     // User the current stack
 

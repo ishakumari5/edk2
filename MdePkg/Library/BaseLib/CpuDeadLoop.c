@@ -27,6 +27,11 @@ CpuDeadLoop (
   volatile UINTN  Index;
 
   for (Index = 0; Index == 0;) {
+    *(volatile UINT32 *)(UINTN)0x0B017010 = 0xFFFFFFFF;
+    *(volatile UINT32 *)(UINTN)0x0B017014 = 0xFFFFFFFF;
+    *(volatile UINT32 *)(UINTN)0x0B017008 = 0; // WDT0_EN = 0 (DISABLE)
+    *(volatile UINT32 *)(UINTN)0x0B017004 = 1; // WDT0_RST = 1 (PET)
+    *(volatile UINT32 *)(UINTN)0x0B017000 = 1;
     CpuPause ();
   }
 }

@@ -130,14 +130,18 @@ PcdDxeInit (
   // Make sure the Pcd Protocol is not already installed in the system
   //
 
+  DEBUG ((DEBUG_ERROR, "PCD: PcdDxeInit In\r\n"));
   ASSERT_PROTOCOL_ALREADY_INSTALLED (NULL, &gPcdProtocolGuid);
 
+  DEBUG ((DEBUG_ERROR, "PCD: BuildPcdDxeDataBase In\r\n"));
   BuildPcdDxeDataBase ();
+  DEBUG ((DEBUG_ERROR, "PCD: BuildPcdDxeDataBase Out\r\n"));
 
   //
   // Install PCD_PROTOCOL to handle dynamic type PCD
   // Install EFI_PCD_PROTOCOL to handle dynamicEx type PCD
   //
+  DEBUG ((DEBUG_ERROR, "PCD: Install PCD_PROTOCOL In\r\n"));
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &mPcdHandle,
                   &gPcdProtocolGuid,
@@ -146,12 +150,14 @@ PcdDxeInit (
                   &mEfiPcdInstance,
                   NULL
                   );
+  DEBUG ((DEBUG_ERROR, "PCD: Install PCD_PROTOCOL Out: %r\r\n", Status));
   ASSERT_EFI_ERROR (Status);
 
   //
   // Install GET_PCD_INFO_PROTOCOL to handle dynamic type PCD
   // Install EFI_GET_PCD_INFO_PROTOCOL to handle dynamicEx type PCD
   //
+  DEBUG ((DEBUG_ERROR, "PCD: Install GET_PCD_INFO_PROTOCOL In\r\n"));
   Status = gBS->InstallMultipleProtocolInterfaces (
                   &mPcdHandle,
                   &gGetPcdInfoProtocolGuid,
@@ -160,12 +166,14 @@ PcdDxeInit (
                   &mEfiGetPcdInfoInstance,
                   NULL
                   );
+  DEBUG ((DEBUG_ERROR, "PCD: Install GET_PCD_INFO_PROTOCOL Out: %r\r\n", Status));
   ASSERT_EFI_ERROR (Status);
 
   //
   // Register callback function upon VariableLockProtocol
   // to lock the variables referenced by DynamicHii PCDs with RO property set in *.dsc.
   //
+  DEBUG ((DEBUG_ERROR, "PCD: EfiCreateProtocolNotifyEvent In\r\n"));
   EfiCreateProtocolNotifyEvent (
     &gEdkiiVariableLockProtocolGuid,
     TPL_CALLBACK,
@@ -173,6 +181,7 @@ PcdDxeInit (
     NULL,
     &Registration
     );
+  DEBUG ((DEBUG_ERROR, "PCD: EfiCreateProtocolNotifyEvent Out\r\n"));
 
   //
   // Cache VpdBaseAddress in entry point for the following usage.
@@ -181,13 +190,18 @@ PcdDxeInit (
   //
   // PcdVpdBaseAddress64 is DynamicEx PCD only. So, DxePcdGet64Ex() is used to get its value.
   //
+  DEBUG ((DEBUG_ERROR, "PCD: PcdVpdBaseAddress64 In\r\n"));
   mVpdBaseAddress = (UINTN)DxePcdGet64Ex (&gEfiMdeModulePkgTokenSpaceGuid, PcdToken (PcdVpdBaseAddress64));
+  DEBUG ((DEBUG_ERROR, "PCD: mVpdBaseAddress64=0x%lx\r\n", (UINT64)mVpdBaseAddress));
   if (mVpdBaseAddress == 0) {
     //
     // PcdVpdBaseAddress64 is not set, get value from PcdVpdBaseAddress.
     //
     mVpdBaseAddress = (UINTN)PcdGet32 (PcdVpdBaseAddress);
+    DEBUG ((DEBUG_ERROR, "PCD: mVpdBaseAddress32=0x%lx\r\n", (UINT64)mVpdBaseAddress));
   }
+
+  DEBUG ((DEBUG_ERROR, "PCD: PcdDxeInit Out: %r\r\n", Status));
 
   return Status;
 }

@@ -400,9 +400,13 @@ GicV2DxeInitialize (
   // the system.
   ASSERT_PROTOCOL_ALREADY_INSTALLED (NULL, &gHardwareInterruptProtocolGuid);
 
+  DEBUG ((DEBUG_ERROR, "GICV2: GicV2DxeInitialize In\r\n"));
+
   mGicInterruptInterfaceBase = PcdGet64 (PcdGicInterruptInterfaceBase);
   mGicDistributorBase        = PcdGet64 (PcdGicDistributorBase);
   mGicNumInterrupts          = ArmGicGetMaxNumInterrupts (mGicDistributorBase);
+
+  DEBUG ((DEBUG_ERROR, "GICV2: Dist=0x%x Iface=0x%x NumInts=%d\r\n", mGicDistributorBase, mGicInterruptInterfaceBase, mGicNumInterrupts));
 
   for (Index = 0; Index < mGicNumInterrupts; Index++) {
     GicV2DisableInterruptSource (&gHardwareInterruptV2Protocol, Index);
@@ -459,6 +463,7 @@ GicV2DxeInitialize (
              GicV2IrqInterruptHandler,
              GicV2ExitBootServicesEvent
              );
+  DEBUG ((DEBUG_ERROR, "GICV2: Out: %r\r\n", Status));
 
   return Status;
 }
